@@ -27,14 +27,16 @@ var ws = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		var info website.Info
 		var err error
+
 		if websiteLink != "" {
 			info, err = website.IdentifyWebsite(context.Background(), websiteLink)
 		} else if websiteDomain != "" {
 			info, err = website.IdentifyDomain(context.Background(), websiteDomain)
 		} else {
-			err = fmt.Errorf("One of: --url, --domain must be specified")
+			err = fmt.Errorf("Specify one of: --url, --domain")
 		}
 		cobra.CheckErr(err)
+
 		fmt.Println("      Owner:", info.Owner)
 		fmt.Println("   Homepage:", info.Homepage)
 		fmt.Println("Description:", info.Description)
