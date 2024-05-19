@@ -55,14 +55,14 @@ func TestIdentifyWebsite(t *testing.T) {
 		<meta property="og:title" content="Home - EverHealth" />
 		<meta property="og:description" content="Reimagining the Way You Work Our simplified, user-centric software can streamline daily operations." />
 		<meta property="og:url" content="https://www.everhealth.com/meta" />
-		<meta property="og:site_name" content="EverHealth" />
+    <meta content="University of California, San Diego" name="ORGANIZATION"/>
 		<meta property="article:modified_time" content="2024-05-14T19:13:39+00:00" />
 		<meta property="og:image" content="https://www.everhealth.com/wp-content/uploads/everhealth-logo.svg" />
 		<meta name="twitter:card" content="summary_large_image" />
 	</head>
 </html>`,
 			Expect: Info{
-				Owner:       "EverHealth",
+				Owner:       "University of California, San Diego",
 				Homepage:    "https://www.everhealth.com/link",
 				Description: "Reimagining the Way You Work Our simplified, user-centric software can streamline daily operations.",
 			},
