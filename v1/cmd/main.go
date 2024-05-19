@@ -4,10 +4,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var cmd = cobra.Command{
+var Root = cobra.Command{
 	Use: "identify <what>",
 }
 
 func main() {
-	cobra.CheckErr(cmd.Execute())
+	cobra.CheckErr(Root.Execute())
 }
