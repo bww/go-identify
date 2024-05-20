@@ -3,6 +3,8 @@ package website
 import (
 	"bytes"
 	"context"
+	"log/slog"
+	"os"
 	"testing"
 
 	"github.com/PuerkitoBio/goquery"
@@ -10,6 +12,8 @@ import (
 )
 
 func TestIdentifyWebsite(t *testing.T) {
+	lh := slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelDebug})
+	slog.SetDefault(slog.New(lh))
 	tests := []struct {
 		Name   string
 		Input  string
@@ -125,6 +129,56 @@ func TestIdentifyWebsite(t *testing.T) {
 				Owner:       "University of California, San Diego",
 				Homepage:    "https://www.everhealth.com/link",
 				Description: "Reimagining the Way You Work Our simplified, user-centric software can streamline daily operations.",
+			},
+		},
+		{
+			Name: "JSON-LD source",
+			Input: `<!DOCTYPE html>
+<html lang="en-US">
+<head>
+	<meta charset="UTF-8">
+		<meta name='robots' content='index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1' />
+		<!-- This site is optimized with the Yoast SEO plugin v22.7 - https://yoast.com/wordpress/plugins/seo/ -->
+		<title>Home - EverHealth</title>
+		<link rel="canonical" href="https://www.everhealth.com/link" />
+    <script type="application/ld+json">
+        {
+          "@context": "https://schema.org/",
+          "@type": "Corporation",
+          "@id": "#Corporation",
+          "url": "https://www.lumen.me/",
+          "legalName": "Lumen",
+          "name": "Lumen Inc",
+          "description": "Lumen is the world’s first hand-held, portable device to accurately measure metabolism. Once available only to top athletes, in hospitals and clinics, metabolic testing is now available to everyone.",
+          "image": "https://www.lumen.me/assets/Pages/home/science-device.png",
+          "logo": "https://www.lumen.me/assets/og1.png",
+          "email": "support@lumen.me",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "325 Hudson St., 4th Floor",
+            "addressLocality": "Manhattan",
+            "addressRegion": "New York",
+            "addressCountry": "United States",
+            "postalCode": "10013"
+          },
+          "sameAs": [
+            "https://www.lumen.me/about",
+            "https://www.facebook.com/Lumen.me/",
+            "https://www.youtube.com/channel/UC3XkEyGUMXfRhZcB0Ve_fQQ",
+            "https://www.instagram.com/lumen.me/",
+            "https://www.linkedin.com/company/lumen-me/",
+            "https://www.pinterest.com/MyLumen",
+            "https://apps.apple.com/us/app/lumen-metabolism-tracker/id1395149502",
+            "https://play.google.com/store/apps/details?id=com.metaflow.lumen"
+          ]
+        }
+    </script>
+	</head>
+</html>`,
+			Expect: Info{
+				Owner:       "Lumen Inc",
+				Homepage:    "https://www.everhealth.com/link",
+				Description: "Lumen is the world’s first hand-held, portable device to accurately measure metabolism. Once available only to top athletes, in hospitals and clinics, metabolic testing is now available to everyone.",
 			},
 		},
 	}

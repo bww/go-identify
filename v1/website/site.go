@@ -2,17 +2,23 @@ package website
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/PuerkitoBio/goquery"
 )
 
 var errCouldNotResolve = errors.New("Could not resolve identity")
 
-var client = &http.Client{}
+var (
+	client = &http.Client{}
+	log    = slog.With("package", "github.com/bww/go-identify/v1/website")
+)
 
 type Info struct {
 	Owner       string // The name of the owner of the site, e.g., a company name, as best we can determine
@@ -64,29 +70,68 @@ func identifyWebsiteWithURL(cxt context.Context, link string) (Info, error) {
 func identifyWebsiteWithDocument(cxt context.Context, link string, doc *goquery.Document) (Info, error) {
 	var sel *goquery.Selection
 	var info Info
+	var err error
 
-	if sel = doc.Find(`head link[rel="canonical"]`); sel.Length() > 0 {
-		info.Homepage = sel.First().AttrOr("href", link)
-	} else if sel = doc.Find(`meta[property="og:url"]`); sel.Length() > 0 {
-		info.Homepage = sel.First().AttrOr("content", link)
-	} else {
-		info.Homepage = link
+	if sel = doc.Find(`script[type="application/ld+json"]`); sel.Length() > 0 {
+		info, err = identifyJSONLD(cxt, info, sel.Text()) // ignore errors here; just try alternatives
+		if err != nil {
+			log.Debug(fmt.Sprintf("Could not extract JSON-LD data: %v", err))
+		}
 	}
 
-	if sel = doc.Find(`meta[property="og:site_name"]`); sel.Length() > 0 {
-		info.Owner = sel.First().AttrOr("content", "")
-	} else if sel = doc.Find(`meta[name="organization" i]`); sel.Length() > 0 {
-		info.Owner = sel.First().AttrOr("content", "")
-	} else if sel = doc.Find(`meta[name="author" i]`); sel.Length() > 0 {
-		info.Owner = sel.First().AttrOr("content", "")
+	if info.Homepage == "" {
+		if sel = doc.Find(`head link[rel="canonical"]`); sel.Length() > 0 {
+			info.Homepage = sel.First().AttrOr("href", link)
+		} else if sel = doc.Find(`meta[property="og:url"]`); sel.Length() > 0 {
+			info.Homepage = sel.First().AttrOr("content", link)
+		} else {
+			info.Homepage = link
+		}
 	}
 
-	if sel = doc.Find(`meta[name="description" i]`); sel.Length() > 0 {
-		info.Description = sel.First().AttrOr("content", "")
-	} else if sel = doc.Find(`meta[property="og:description"]`); sel.Length() > 0 {
-		info.Description = sel.First().AttrOr("content", "")
+	if info.Owner == "" {
+		if sel = doc.Find(`meta[property="og:site_name"]`); sel.Length() > 0 {
+			info.Owner = sel.First().AttrOr("content", "")
+		} else if sel = doc.Find(`meta[name="organization" i]`); sel.Length() > 0 {
+			info.Owner = sel.First().AttrOr("content", "")
+		} else if sel = doc.Find(`meta[name="author" i]`); sel.Length() > 0 {
+			info.Owner = sel.First().AttrOr("content", "")
+		}
 	}
 
+	if info.Description == "" {
+		if sel = doc.Find(`meta[name="description" i]`); sel.Length() > 0 {
+			info.Description = sel.First().AttrOr("content", "")
+		} else if sel = doc.Find(`meta[property="og:description"]`); sel.Length() > 0 {
+			info.Description = sel.First().AttrOr("content", "")
+		}
+	}
+
+	return info, nil
+}
+
+type jsonLD struct {
+	Name        string `json:"name"`
+	LegalName   string `json:"legalName"`
+	Description string `json:"description"`
+}
+
+func identifyJSONLD(cxt context.Context, info Info, data string) (Info, error) {
+	var jsonld jsonLD
+	err := json.Unmarshal([]byte(strings.TrimSpace(data)), &jsonld)
+	if err != nil {
+		fmt.Println(">>>>>>>>>>>>>>>>>>>>> YO:", err)
+		return info, err
+	}
+	fmt.Println(">>>>>>>>>>>>>>>>>>>>> YO:", jsonld)
+	if jsonld.Name != "" {
+		info.Owner = jsonld.Name
+	} else if jsonld.LegalName != "" {
+		info.Owner = jsonld.LegalName
+	}
+	if jsonld.Description != "" {
+		info.Description = jsonld.Description
+	}
 	return info, nil
 }
 
