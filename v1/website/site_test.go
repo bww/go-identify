@@ -3,17 +3,61 @@ package website
 import (
 	"bytes"
 	"context"
-	"log/slog"
-	"os"
 	"testing"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/stretchr/testify/assert"
 )
 
+func TestDomainOptions(t *testing.T) {
+	tests := []struct {
+		Name   string
+		Input  string
+		Expect []string
+	}{
+		{
+			Name:  "TLD (this isn't really valid, but...)",
+			Input: "google",
+			Expect: []string{
+				"google",
+				"www.google",
+			},
+		},
+		{
+			Name:  "Root domain",
+			Input: "google.com",
+			Expect: []string{
+				"google.com",
+				"www.google.com",
+			},
+		},
+		{
+			Name:  "Email domain",
+			Input: "email.google.com",
+			Expect: []string{
+				"email.google.com",
+				"google.com",
+				"www.google.com",
+			},
+		},
+		{
+			Name:  "Many sub-domains",
+			Input: "x1.y2.email.google.com",
+			Expect: []string{
+				"x1.y2.email.google.com",
+				"y2.email.google.com",
+				"email.google.com",
+				"google.com",
+				"www.google.com",
+			},
+		},
+	}
+	for _, e := range tests {
+		assert.Equal(t, e.Expect, optionsForDomain(e.Input))
+	}
+}
+
 func TestIdentifyWebsite(t *testing.T) {
-	lh := slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelDebug})
-	slog.SetDefault(slog.New(lh))
 	tests := []struct {
 		Name   string
 		Input  string

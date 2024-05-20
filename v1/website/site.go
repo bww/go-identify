@@ -20,6 +20,15 @@ var (
 	log    = slog.With("package", "github.com/bww/go-identify/v1/website")
 )
 
+type resolveError struct {
+	msg  string
+	errs []error
+}
+
+func (e resolveError) Error() string {
+	return e.msg
+}
+
 type Info struct {
 	Owner       string // The name of the owner of the site, e.g., a company name, as best we can determine
 	Homepage    string // The homepage of the site
@@ -28,7 +37,44 @@ type Info struct {
 
 // Attempt to infer details about a website from its domain name
 func IdentifyDomain(cxt context.Context, domain string) (Info, error) {
-	return IdentifyWebsite(cxt, fmt.Sprintf("https://%s", domain))
+	var errs []error
+	for _, opt := range optionsForDomain(domain) {
+		info, err := IdentifyWebsite(cxt, fmt.Sprintf("https://%s", opt))
+		if err == nil {
+			return info, err
+		} else {
+			errs = append(errs, err)
+		}
+	}
+	return Info{}, resolveError{
+		msg:  "Could not resolve identity for domain",
+		errs: errs,
+	}
+}
+
+func optionsForDomain(domain string) []string {
+	note := map[string]struct{}{domain: struct{}{}}
+	opts := []string{domain}
+
+	// add options by removing domain components
+	for strings.Count(domain, ".") > 1 {
+		if x := strings.Index(domain, "."); x >= 0 {
+			domain = domain[x+1:]
+			if _, ok := note[domain]; !ok {
+				opts = append(opts, domain)
+				note[domain] = struct{}{}
+			}
+		}
+	}
+
+	// add options by appending common prefixes
+	alt := "www." + domain
+	if _, ok := note[alt]; !ok {
+		note[alt] = struct{}{}
+		opts = append(opts, alt)
+	}
+
+	return opts
 }
 
 // Attempt to infer details about a website
