@@ -77,6 +77,8 @@ func identifyWebsiteWithDocument(cxt context.Context, link string, doc *goquery.
 		info.Owner = sel.First().AttrOr("content", "")
 	} else if sel = doc.Find(`meta[name="organization" i]`); sel.Length() > 0 {
 		info.Owner = sel.First().AttrOr("content", "")
+	} else if sel = doc.Find(`meta[name="author" i]`); sel.Length() > 0 {
+		info.Owner = sel.First().AttrOr("content", "")
 	}
 
 	if sel = doc.Find(`meta[name="description" i]`); sel.Length() > 0 {
