@@ -11,11 +11,13 @@ import (
 
 func TestIdentifyWebsite(t *testing.T) {
 	tests := []struct {
+		Name   string
 		Input  string
 		Expect Info
 		Error  error
 	}{
 		{
+			Name: "First choice options",
 			Input: `<!DOCTYPE html>
 <html lang="en-US">
 <head>
@@ -42,6 +44,7 @@ func TestIdentifyWebsite(t *testing.T) {
 			},
 		},
 		{
+			Name: "Fallback options",
 			Input: `<!DOCTYPE html>
 <html lang="en-US">
 <head>
@@ -60,6 +63,34 @@ func TestIdentifyWebsite(t *testing.T) {
 		<meta property="og:image" content="https://www.everhealth.com/wp-content/uploads/everhealth-logo.svg" />
 		<meta name="twitter:card" content="summary_large_image" />
 	</head>
+</html>`,
+			Expect: Info{
+				Owner:       "University of California, San Diego",
+				Homepage:    "https://www.everhealth.com/link",
+				Description: "Reimagining the Way You Work Our simplified, user-centric software can streamline daily operations.",
+			},
+		},
+		{
+			Name: "Malformed meta tags not in head",
+			Input: `<!DOCTYPE html>
+<html lang="en-US">
+<head>
+	<meta charset="UTF-8">
+		<meta name='robots' content='index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1' />
+		<!-- This site is optimized with the Yoast SEO plugin v22.7 - https://yoast.com/wordpress/plugins/seo/ -->
+		<title>Home - EverHealth</title>
+		<link rel="canonical" href="https://www.everhealth.com/link" />
+	</head>
+	<body></body>
+	<meta property="og:locale" content="en_US" />
+	<meta property="og:type" content="website" />
+	<meta property="og:title" content="Home - EverHealth" />
+	<meta property="og:description" content="Reimagining the Way You Work Our simplified, user-centric software can streamline daily operations." />
+	<meta property="og:url" content="https://www.everhealth.com/meta" />
+	<meta content="University of California, San Diego" name="ORGANIzation"/>
+	<meta property="article:modified_time" content="2024-05-14T19:13:39+00:00" />
+	<meta property="og:image" content="https://www.everhealth.com/wp-content/uploads/everhealth-logo.svg" />
+	<meta name="twitter:card" content="summary_large_image" />
 </html>`,
 			Expect: Info{
 				Owner:       "University of California, San Diego",

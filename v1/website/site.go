@@ -67,21 +67,21 @@ func identifyWebsiteWithDocument(cxt context.Context, link string, doc *goquery.
 
 	if sel = doc.Find(`head link[rel="canonical"]`); sel.Length() > 0 {
 		info.Homepage = sel.First().AttrOr("href", link)
-	} else if sel = doc.Find(`head meta[property="og:url"]`); sel.Length() > 0 {
+	} else if sel = doc.Find(`meta[property="og:url"]`); sel.Length() > 0 {
 		info.Homepage = sel.First().AttrOr("content", link)
 	} else {
 		info.Homepage = link
 	}
 
-	if sel = doc.Find(`head meta[property="og:site_name"]`); sel.Length() > 0 {
+	if sel = doc.Find(`meta[property="og:site_name"]`); sel.Length() > 0 {
 		info.Owner = sel.First().AttrOr("content", "")
-	} else if sel = doc.Find(`head meta[name="organization" i]`); sel.Length() > 0 {
+	} else if sel = doc.Find(`meta[name="organization" i]`); sel.Length() > 0 {
 		info.Owner = sel.First().AttrOr("content", "")
 	}
 
-	if sel = doc.Find(`head meta[name="description" i]`); sel.Length() > 0 {
+	if sel = doc.Find(`meta[name="description" i]`); sel.Length() > 0 {
 		info.Description = sel.First().AttrOr("content", "")
-	} else if sel = doc.Find(`head meta[property="og:description"]`); sel.Length() > 0 {
+	} else if sel = doc.Find(`meta[property="og:description"]`); sel.Length() > 0 {
 		info.Description = sel.First().AttrOr("content", "")
 	}
 
