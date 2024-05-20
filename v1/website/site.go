@@ -73,7 +73,7 @@ func identifyWebsiteWithDocument(cxt context.Context, link string, doc *goquery.
 	var err error
 
 	if sel = doc.Find(`script[type="application/ld+json"]`); sel.Length() > 0 {
-		info, err = identifyJSONLD(cxt, info, sel.Text()) // ignore errors here; just try alternatives
+		info, err = identifyJSONLD(cxt, info, sel.First().Text()) // ignore errors here; just try alternatives
 		if err != nil {
 			log.Debug(fmt.Sprintf("Could not extract JSON-LD data: %v", err))
 		}
@@ -120,10 +120,8 @@ func identifyJSONLD(cxt context.Context, info Info, data string) (Info, error) {
 	var jsonld jsonLD
 	err := json.Unmarshal([]byte(strings.TrimSpace(data)), &jsonld)
 	if err != nil {
-		fmt.Println(">>>>>>>>>>>>>>>>>>>>> YO:", err)
 		return info, err
 	}
-	fmt.Println(">>>>>>>>>>>>>>>>>>>>> YO:", jsonld)
 	if jsonld.Name != "" {
 		info.Owner = jsonld.Name
 	} else if jsonld.LegalName != "" {
