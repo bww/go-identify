@@ -34,15 +34,17 @@ func (e resolveError) Error() string {
 type Info struct {
 	Owner       string // The name of the owner of the site, e.g., a company name, as best we can determine
 	Homepage    string // The homepage of the site
-	Description string
+	Description string // A brief description of the website and/or the company that manages it
 }
 
-// Attempt to infer details about a website from its domain name
+// Attempt to infer details about a website from its domain name. This
+// convenience interface uses the default resolver.
 func IdentifyDomain(cxt context.Context, domain string) (Info, error) {
 	return Default().IdentifyDomain(cxt, domain)
 }
 
-// Attempt to infer details about a website
+// Attempt to infer details about a website. This convenience interface uses
+// the default resolver.
 func IdentifyWebsite(cxt context.Context, link string) (Info, error) {
 	return Default().IdentifyWebsite(cxt, link)
 }
