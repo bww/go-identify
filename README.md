@@ -29,7 +29,8 @@ fmt.Printf("The domain treno.io is owned by %s\n", info.Owner)
 `go-identify` is primarily a Go package, but a CLI wrapper is provided to do the same thing on the command line:
 
 ```sh
-$ go run ./v1/cmd website --domain treno.io
+$ go install ./v1/cmd/metaid
+$ metaid website --domain treno.io
       Owner: Treno
    Homepage: https://www.treno.io/
 Description: Treno is an observability platform that provides monitoring, metrics, and visualizations that allow you to observe, analyze, and improve software delivery.
