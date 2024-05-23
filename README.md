@@ -1,7 +1,7 @@
 # `go-identify` identifies things on the web
-This package provides routines that extract metadata about things on the web using whichever first-party data is available. Generally this means fetching a webpage and inspecting various metadata.
+This package provides routines that extract information about things on the web using whichever _first-party_ metadata is available. Generally this means fetching a webpage and inspecting website headers.
 
-Currently, `go-identify` can probe metadata about:
+Currently, `go-identify` can probe metadata relating to:
 
 * Websites, and
 * Domains (which it uses to guess where it might find a corresponding website).
